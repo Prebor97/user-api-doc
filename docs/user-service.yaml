@@ -53,7 +53,7 @@ components:
           type: string
           format: date-time
           example: 2025-08-27T11:59:00Z
-      RoleResponse:
+    RoleResponse:
       type: object
       properties:
         message:
