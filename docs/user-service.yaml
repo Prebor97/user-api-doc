@@ -53,6 +53,16 @@ components:
           type: string
           format: date-time
           example: 2025-08-27T11:59:00Z
+      RoleResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Role updated successfully
+        timestamp:
+          type: string
+          format: date-time
+          example: 2025-08-27T11:59:00Z    
     ErrorResponse:
       type: object
       properties:
@@ -443,7 +453,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/RoleResponse'
         '403':
           description: Admin privileges required
           content:
@@ -636,7 +646,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/RoleResponse'
         '400':
           description: Invalid role
           content:
