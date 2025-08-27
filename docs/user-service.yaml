@@ -338,7 +338,7 @@ paths:
   /api/auth/register:
     post:
       summary: Register a new user
-      description: Creates a new user with USER role and generates a JWT. Publishes a `UserRegisteredEvent` to the `user-events` topic for Notification Service and Events/Ticket Service sync.
+      description: Creates a new user with USER and generates a JWT. Publishes a `UserRegisteredEvent` to the `notification-events` topic for Notification Service to send mail to user.
       operationId: registerUser
       requestBody:
         content:
@@ -491,7 +491,7 @@ paths:
   /api/auth/reset-password/confirm:
     post:
       summary: Confirm password reset
-      description: Resets the password using a valid token. Publishes a `PasswordResetCompletedEvent` to the `user-events` topic.
+      description: Resets the password using a valid token. 
       operationId: confirmPasswordReset
       requestBody:
         content:
@@ -523,7 +523,7 @@ paths:
   /api/auth/profiles/{userId}:
     put:
       summary: Update user profile
-      description: Updates profile information (self or admin only). Publishes a `UserUpdatedEvent` to the `user-events` topic for syncing user data (e.g., Events/Ticket Service).
+      description: Updates profile information (self or admin only). 
       operationId: updateProfile
       parameters:
         - name: userId
@@ -574,7 +574,7 @@ paths:
   /api/auth/users/{userId}/info:
     get:
       summary: Get user information
-      description: Retrieves user and profile details (self or admin only). No Kafka event published.
+      description: Retrieves user and profile details (self or admin only). 
       operationId: getUserInfo
       parameters:
         - name: userId
@@ -613,7 +613,7 @@ paths:
   /api/auth/users/{userId}/role:
     put:
       summary: Assign user role
-      description: Updates a user's role (admin only). Publishes a `UserRoleUpdatedEvent` to the `user-events` topic for access control updates (e.g., Events/Ticket Service).
+      description: Updates a user's role (admin only). Publishes a `UserRoleUpdatedEvent` to the `notification-events` topic to notify user of role change.
       operationId: assignRole
       parameters:
         - name: userId
