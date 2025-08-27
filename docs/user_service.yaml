@@ -1,0 +1,657 @@
+openapi: 3.0.3
+info:
+  title: User Service API
+  description: API for user authentication and profile management in a ticketing platform. Publishes Kafka events to `user-events` or `notification-events` topics for integration with other services.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: User Service
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserRegistrationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          minLength: 8
+          example: strongPassword123
+        confirmPassword:
+          type: string
+          minLength: 8
+          example: strongPassword123  
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        phoneNumber:
+          type: string
+          example: +1234567890
+      required:
+        - email
+        - password
+    UserResponse:
+      type: object
+      properties:
+        jwt:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        message:
+          type: string
+          example: User registered successfully
+        timestamp:
+          type: string
+          format: date-time
+          example: 2025-08-27T11:59:00Z
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid email format
+        code:
+          type: integer
+          example: 402
+        timestamp:
+          type: string
+          format: date-time
+          example: 2025-08-27T11:59:00Z
+      required:
+        - error
+        - code
+        - timestamp
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          example: strongPassword123
+      required:
+        - email
+        - password
+    ResetPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+      required:
+        - email
+    ResetPasswordConfirmRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          example: resetToken123
+        newPassword:
+          type: string
+          minLength: 8
+          example: newStrongPass456
+        confirmPassword:
+          type: string
+          minLength: 8
+          example: newStrongPass456  
+      required:
+        - token
+        - newPassword
+    CreateAdminRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          minLength: 8
+          example: adminPass123
+        firstName:
+          type: string
+          example: Admin
+        lastName:
+          type: string
+          example: User
+      required:
+        - email
+        - password
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: Jane
+        lastName:
+          type: string
+          example: Smith
+        phoneNumber:
+          type: string
+          example: +1234567890
+        address:
+          type: string
+          example: 123 Main St
+        dateOfBirth:
+          type: string
+          format: date
+          example: 1990-01-01
+        profilePictureUrl:
+          type: string
+          example: https://example.com/profile.jpg
+    ProfileResponse:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: Jane
+        lastName:
+          type: string
+          example: Smith
+        phoneNumber:
+          type: string
+          example: +1234567890
+        address:
+          type: string
+          example: 123 Main St
+        dateOfBirth:
+          type: string
+          format: date
+          example: 1990-01-01
+        profilePictureUrl:
+          type: string
+          example: https://example.com/profile.jpg
+        message:
+          type: string
+          example: Profile updated successfully
+        timestamp:
+          type: string
+          format: date-time
+          example: 2025-08-27T11:59:00Z
+    UserInfoResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          example: user@example.com
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [USER, ADMIN]
+          example: ["USER"]
+        profile:
+          $ref: '#/components/schemas/ProfileResponse'
+        timestamp:
+          type: string
+          format: date-time
+          example: 2025-08-27T11:59:00Z
+    RoleUpdateRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [USER, ADMIN]
+          example: ADMIN
+      required:
+        - role
+    UserRegisteredEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          example: UserRegistered
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          example: user@example.com  
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+      required:
+        - eventType
+        - userId
+        - email
+    UserLoggedInEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          example: UserLoggedIn
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          example: user@example.com
+        login_date:
+          type: string
+          example: 2025-08-26  
+      required:
+        - eventType
+        - userId
+        - email
+    UserDeletedEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          example: UserDeleted
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: mail
+          example: mail@gmail.com  
+      required:
+        - eventType
+        - userId
+        - email
+    AdminCreatedEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          example: AdminCreated
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440001
+        email:
+          type: string
+          example: admin@example.com
+      required:
+        - eventType
+        - userId
+        - email
+    PasswordResetRequestedEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          example: PasswordResetRequested
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          example: user@example.com
+        token:
+          type: string
+          example: resetToken123
+      required:
+        - eventType
+        - userId
+        - email
+        - token
+    UserRoleUpdatedEvent:
+      type: object
+      properties:
+        eventType:
+          type: string
+          example: UserRoleUpdated
+        userId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          example: user@example.com
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [USER, ADMIN]
+          example: ["USER", "ADMIN"]
+      required:
+        - eventType
+        - userId
+        - email
+        - roles
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user with USER role and generates a JWT. Publishes a `UserRegisteredEvent` to the `user-events` topic for Notification Service and Events/Ticket Service sync.
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+        required: true
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/login:
+    post:
+      summary: User login
+      description: Authenticates a user and returns a JWT. Publishes a `UserLoggedInEvent` to the `user-events` and `notification-events` topic for subscription by the notification service.
+      operationId: loginUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/users/{userId}:
+    delete:
+      summary: Delete a user
+      description: Deletes a user (self or admin only). Publishes a `UserDeletedEvent` to the `user-events` and `notification-events` topic for cleanup in other services (e.g., Events/Ticket Service) and to notify deleted user.
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: User deleted successfully
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/admins:
+    post:
+      summary: Create an admin
+      description: Creates a new user with ADMIN role (admin only). Publishes an `AdminCreatedEvent` to the `user-events` and `notification-events` topic for Notification Service.
+      operationId: createAdmin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAdminRequest'
+        required: true
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Admin created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '403':
+          description: Admin privileges required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/reset-password/request:
+    post:
+      summary: Request password reset
+      description: Sends a password reset link to the user's email. Publishes a `PasswordResetRequestedEvent` to the `notification-events` topic for Notification Service to send the email.
+      operationId: requestPasswordReset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+        required: true
+      responses:
+        '200':
+          description: Reset link sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password reset link sent to email
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: 2025-08-27T11:59:00Z
+        '404':
+          description: Email not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/reset-password/confirm:
+    post:
+      summary: Confirm password reset
+      description: Resets the password using a valid token. Publishes a `PasswordResetCompletedEvent` to the `user-events` topic.
+      operationId: confirmPasswordReset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordConfirmRequest'
+        required: true
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password reset successful
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: 2025-08-27T11:59:00Z
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/profiles/{userId}:
+    put:
+      summary: Update user profile
+      description: Updates profile information (self or admin only). Publishes a `UserUpdatedEvent` to the `user-events` topic for syncing user data (e.g., Events/Ticket Service).
+      operationId: updateProfile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+        required: true
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or expired JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/users/{userId}/info:
+    get:
+      summary: Get user information
+      description: Retrieves user and profile details (self or admin only). No Kafka event published.
+      operationId: getUserInfo
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+        '401':
+          description: Invalid or expired JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/users/{userId}/role:
+    put:
+      summary: Assign user role
+      description: Updates a user's role (admin only). Publishes a `UserRoleUpdatedEvent` to the `user-events` topic for access control updates (e.g., Events/Ticket Service).
+      operationId: assignRole
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+        required: true
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin privileges required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
