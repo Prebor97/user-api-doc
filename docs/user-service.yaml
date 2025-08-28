@@ -348,7 +348,7 @@ paths:
   /api/auth/register:
     post:
       summary: Register a new user
-      description: Creates a new user with USER and generates a JWT. Publishes a `UserRegisteredEvent` to the `notification-events` topic for Notification Service to send mail to user.
+      description: Creates a new user with USER and generates a JWT. Publishes a `UserRegisteredEvent` to the `user-events` topic for Notification Service to send mail to user.
       operationId: registerUser
       requestBody:
         content:
@@ -378,7 +378,7 @@ paths:
   /api/auth/login:
     post:
       summary: User login
-      description: Authenticates a user and returns a JWT. Publishes a `UserLoggedInEvent` to the `user-events` and `notification-events` topic for subscription by the notification service.
+      description: Authenticates a user and returns a JWT. Publishes a `UserLoggedInEvent` to the `user-events` topic for subscription by the notification service.
       operationId: loginUser
       requestBody:
         content:
@@ -408,7 +408,7 @@ paths:
   /api/auth/users/{userId}:
     delete:
       summary: Delete a user
-      description: Deletes a user (self or admin only). Publishes a `UserDeletedEvent` to the `user-events` and `notification-events` topic for cleanup in other services (e.g., Events/Ticket Service) and to notify deleted user.
+      description: Deletes a user (self or admin only). Publishes a `UserDeletedEvent` to the `user-events` notify deleted user.
       operationId: deleteUser
       parameters:
         - name: userId
@@ -437,7 +437,7 @@ paths:
   /api/auth/admins:
     post:
       summary: Create an admin
-      description: Creates a new user with ADMIN role (admin only). Publishes an `AdminCreatedEvent` to the `user-events` and `notification-events` topic for Notification Service.
+      description: Creates a new user with ADMIN role (admin only). Publishes an `AdminCreatedEvent` to the `user-events` topic for Notification Service.
       operationId: createAdmin
       requestBody:
         content:
@@ -469,7 +469,7 @@ paths:
   /api/auth/reset-password/request:
     post:
       summary: Request password reset
-      description: Sends a password reset link to the user's email. Publishes a `PasswordResetRequestedEvent` to the `notification-events` topic for Notification Service to send the email.
+      description: Sends a password reset link to the user's email. Publishes a `PasswordResetRequestedEvent` to the `user-events` topic for Notification Service to send the email.
       operationId: requestPasswordReset
       requestBody:
         content:
@@ -623,7 +623,7 @@ paths:
   /api/auth/users/{userId}/role:
     put:
       summary: Assign user role
-      description: Updates a user's role (admin only). Publishes a `UserRoleUpdatedEvent` to the `notification-events` topic to notify user of role change.
+      description: Updates a user's role (admin only). Publishes a `UserRoleUpdatedEvent` to the `user-events` topic to notify user of role change.
       operationId: assignRole
       parameters:
         - name: userId
